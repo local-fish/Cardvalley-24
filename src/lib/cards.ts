@@ -1,3 +1,20 @@
+export type Card = {
+  id: number,
+  value: number,
+  image: string,
+  highlight: string,
+}
+
+export type PlayingCard = {
+  id: number,
+  value: number,
+  image: string,
+  highlight: string,
+  handId: number,
+  displayValue: number,
+  isResult: boolean,
+  stackCount: number,
+}
 export const cards = [
   { id: 1, value: 1, image: '/cards/1.png', highlight: '/cards/1-alt.png' },
   { id: 2, value: 2, image: '/cards/2.png', highlight: '/cards/2-alt.png' },
