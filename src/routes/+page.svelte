@@ -53,8 +53,10 @@ function merge() {
       <img class="base" src={card.image} alt="Card" />
       <img class="highlight" src={card.highlight} alt="Card" />
       {#if card.isResult}
-        <span class="badge">{card.stackCount ?? 2}</span>
-        <span class="value">{card.displayValue}</span>
+        <div class="overlays" class:selected={selectedCards.includes(card.handId)}>
+          <span class="badge">{card.stackCount ?? 2}</span>
+          <span class="value">{card.displayValue}</span>
+        </div>
       {/if}
     </button>
   {/each}
@@ -101,8 +103,8 @@ function merge() {
 
 .badge {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 6px;
+  right: 6px;
   background: #e63;
   color: white;
   font-size: 0.65rem;
@@ -119,6 +121,17 @@ function merge() {
 .card {
   width: 100px;
   cursor: pointer;
+}
+
+.overlays { 
+  position: absolute;
+  inset: 0;
+  transform: scale(1);
+  transition: transform 0.25s ease;
+}
+
+.overlays.selected {
+  transform: scale(0.9);
 }
 
 .card.selected img {
