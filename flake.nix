@@ -17,6 +17,7 @@
 			name="Cardvalley";
 			packages = with pkgs; [
 				bun
+        svelte-language-server
 				];
 			shellHook = "tmux -L Cardvalley new-session -A -s Cardvalley";
 			};
