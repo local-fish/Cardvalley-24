@@ -1,170 +1,256 @@
 <script lang="ts">
-import { cards, type PlayingCard } from '$lib/cards.js';
-import { easy } from '$lib/questions.js';
+	import { cards, type PlayingCard } from '$lib/cards';
+	import { questions, type Question } from '$lib/questions';
+	import { operators } from '$lib/operators';
+	import { fade } from 'svelte/transition';
+	import type { Operator } from '$lib/operators';
+	import Card from '$lib/components/Card.svelte';
+	import OperatorBar from '$lib/components/OperatorBar.svelte';
+	import type { LevelResult, Move } from '$lib/userData';
 
-import { operators } from '$lib/operators.js';
-import type { Operator } from '$lib/operators.js';
+	let selectedOp: Operator | null = $state(null);
+	let selectedCards: number[] = $state([]);
+	let currentLevel: number = $state(0);
+	const puzzle: Question = $derived(questions[currentLevel]);
+	let hand: PlayingCard[] = $derived(
+		puzzle.cards.map((cardIndex, i) => ({
+			...cards[cardIndex - 1],
+			handId: i,
+			displayValue: cards[cardIndex - 1].value,
+			isResult: false,
+			stackCount: 1,
+		})),
+	);
+	let results: LevelResult[] = $state([]);
+	// --- Timer ---
+	let elapsedMs: number = $state(0);
+	let timerInterval: ReturnType<typeof setInterval> | null = null;
 
-let selectedOp: Operator | null = $state(null);
-let selectedCards: number[] = $state([]); // max 2 handIds
-const puzzle = easy[0]; // later this can be dynamic
-let hand: PlayingCard[] = $state(puzzle.cards.map((cardIndex, i) => ({
-  ...cards[cardIndex - 1],
-  handId: i, 
-  displayValue: cards[cardIndex - 1].value, // can diverge from base value
-  isResult: false, // true if this card is a merged result
-  stackCount: 1,
-})));
+	function startTimer() {
+		stopTimer();
+		elapsedMs = 0;
+		timerInterval = setInterval(() => {
+			elapsedMs += 1000;
+		}, 1000);
+	}
 
-function selectCard(card: PlayingCard) {
-  if (!selectedOp) return; // must pick op first
-  if (selectedCards.includes(card.handId)) {
-    // deselect
-    selectedCards = selectedCards.filter(id => id !== card.handId);
-    return;
-  }
-  if (selectedCards.length >= 2) return;
-  selectedCards = [...selectedCards, card.handId];
+	function stopTimer() {
+		if (timerInterval !== null) {
+			clearInterval(timerInterval);
+			timerInterval = null;
+		}
+	}
 
-  if (selectedCards.length === 2) merge();
-}
+	function formatTime(ms: number): string {
+		return `${Math.floor(ms / 1000)}s`;
+	}
 
-function merge() {
-  const op = operators.find(o => o.symbol === selectedOp?.symbol);
-  const [a, b] = selectedCards.map(id => hand.find(c => c.handId === id));
-  const result = op?.fn(a?.displayValue ?? 0, b?.displayValue ?? 0);
-  const count = (a?.stackCount ?? 1) + (b?.stackCount ?? 1);
+	startTimer();
 
-  hand = hand
-    .filter(c => c.handId !== b?.handId)
-    .map(c => c.handId === a?.handId
-      ? { ...c, displayValue: result, isResult: true, stackCount: count}
-      : c
-    ) as PlayingCard[];
+	function selectCard(card: PlayingCard) {
+		if (selectedCards.includes(card.handId)) {
+			selectedCards = selectedCards.filter((id) => id !== card.handId);
+			return;
+		}
+		if (selectedCards.length >= 2) return;
+		selectedCards = [...selectedCards, card.handId];
+	}
 
-  selectedCards = [];
-  selectedOp = null;
-}
+	function canSubmit() {
+		return selectedCards.length === 2 && selectedOp !== null;
+	}
+
+	let moveLog: Move[] = $state([]);
+
+	function merge() {
+		const op = operators.find((o) => o.symbol === selectedOp?.symbol);
+		const [a, b] = selectedCards.map((id) => hand.find((c) => c.handId === id));
+		const result = op?.fn(a?.displayValue ?? 0, b?.displayValue ?? 0);
+		const count = (a?.stackCount ?? 1) + (b?.stackCount ?? 1);
+		moveLog = [
+			...moveLog,
+			{
+				cardA: a?.displayValue ?? 0,
+				cardB: b?.displayValue ?? 0,
+				op: selectedOp?.symbol ?? '',
+				result: result ?? 0,
+			},
+		];
+
+		hand = hand
+			.filter((c) => c.handId !== b?.handId)
+			.map((c) =>
+				c.handId === a?.handId
+					? { ...c, displayValue: result, isResult: true, stackCount: count }
+					: c,
+			) as PlayingCard[];
+
+		selectedCards = [];
+		selectedOp = null;
+		if (hand.length === 1) {
+			stopTimer();
+			results = [
+				...results,
+				{
+					level: currentLevel + 1,
+					//moves: moveLog,
+					timeMs: elapsedMs,
+					correct: Math.abs((result ?? 0) - 24) < 0.0001,
+				},
+			];
+			console.log(JSON.stringify(results, null, 2));
+		}
+	}
+
+	const won = $derived(hand.length === 1 && Math.abs(hand[0].displayValue - 24) < 0.0001);
+	const lost = $derived(hand.length === 1 && Math.abs(hand[0].displayValue - 24) > 0.0001);
+
+	function nextLevel() {
+		if (currentLevel < questions.length - 1) {
+			currentLevel++;
+			resetLevel();
+		}
+	}
+
+	function resetLevel() {
+		hand = questions[currentLevel].cards.map((cardIndex, i) => ({
+			...cards[cardIndex - 1],
+			handId: i,
+			displayValue: cards[cardIndex - 1].value,
+			isResult: false,
+			stackCount: 1,
+		}));
+		selectedCards = [];
+		selectedOp = null;
+		//moveLog = [];
+		startTimer();
+	}
 </script>
 
-<div class="hand">
-  {#each hand as card (card.handId)}
-    <button class="card" class:selected={selectedCards.includes(card.handId)} onclick={() => selectCard(card)}>
-      <img class="base" src={card.image} alt="Card" />
-      <img class="highlight" src={card.highlight} alt="Card" />
-      {#if card.isResult}
-        <div class="overlays" class:selected={selectedCards.includes(card.handId)}>
-          <span class="badge">{card.stackCount ?? 2}</span>
-          <span class="value">{card.displayValue}</span>
-        </div>
-      {/if}
-    </button>
-  {/each}
-</div>
-<div class="operators">
-  {#each operators as op}
-    <button
-      class:active={selectedOp?.symbol == op.symbol}
-      onclick={() => selectedOp = op}
-    >
-      {op.symbol}
-    </button>
-  {/each}
-</div>
+<svelte:head>
+	{#each Object.values(cards) as card}
+		<link rel="preload" as="image" href={card.image} />
+		<link rel="preload" as="image" href={card.highlight} />
+	{/each}
+</svelte:head>
 
-<div>
-  <div> debug info </div>
-  <div> {selectedOp?.symbol} </div>
+<div class="page">
+	<div class="timer">{formatTime(elapsedMs)}</div>
+  <div> Make this into 24! </div>
+
+	{#if won}
+		<div class="correct" transition:fade={{ duration: 300 }}>
+			<span>Correct!</span>
+			<button class="next" onclick={nextLevel}>Next →</button>
+		</div>
+	{/if}
+	{#if lost}
+		<div class="correct" transition:fade={{ duration: 300 }}>
+			<div class="wrong">Wrong Answer</div>
+			<button class="next" onclick={nextLevel}>Next →</button>
+		</div>
+	{/if}
+
+	<div class="hand">
+		{#each hand as card (card.handId)}
+			<Card
+				{card}
+				selected={selectedCards.includes(card.handId)}
+				order={selectedCards.includes(card.handId) ? selectedCards.indexOf(card.handId) + 1 : null}
+				onclick={() => selectCard(card)}
+			/>
+		{/each}
+	</div>
+
+	<OperatorBar
+		{selectedOp}
+		canSubmit={canSubmit()}
+		onSelect={(op) => (selectedOp = op)}
+		onSubmit={merge}
+		blacklist={puzzle.blacklist}
+	/>
 </div>
-<p>Target: 24</p>
 
 <style>
-.card {
-  position: relative;
-  width: 100px;
-  cursor: pointer;
-  background: none;
-  border: none;
-  padding: 0;   
-  outline: none;
-}
+	:global(html, body) {
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+	}
+	.hand {
+		display: flex;
+		gap: 1rem;
+	}
 
-.value {
-  position: absolute;
-  bottom: 16px;
-  left: 12px; right: 12px;
-  text-align: center;
-  background: rgba(128,77,233,0.5);
-  color: white;
-  font-size: 1.2rem;
-  border-radius: 999px;
-  padding: 2px 0;
-}
+	.page {
+		height: 100vh;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		background-image: url('/background.png');
+		background-size: cover;
+		background-position: center;
+	}
 
-.badge {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: #e63;
-  color: white;
-  font-size: 0.65rem;
-  font-weight: bold;
-  padding: 2px 5px;
-  border-radius: 999px;
-  line-height: 1;
-}
-.hand {
-  display: flex;
-  gap: 1rem;
-}
+	.timer {
+		position: fixed;
+		top: 1rem;
+		right: 1.5rem;
+		font-size: 1.4rem;
+		font-weight: bold;
+		color: white;
+		text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+		font-variant-numeric: tabular-nums;
+		z-index: 10;
+	}
 
-.card {
-  width: 100px;
-  cursor: pointer;
-}
+	.correct {
+		position: fixed;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 1rem;
+		background: rgba(0, 0, 0, 0.7);
+		pointer-events: all;
+		z-index: 2;
+	}
 
-.overlays { 
-  position: absolute;
-  inset: 0;
-  transform: scale(1);
-  transition: transform 0.25s ease;
-}
+	.correct span {
+		font-size: 3rem;
+		font-weight: bold;
+		color: white;
+		text-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+	}
 
-.overlays.selected {
-  transform: scale(0.9);
-}
+	.wrong {
+		font-size: 3rem;
+		font-weight: bold;
+		color: #a14b42;
+		text-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+	}
 
-.card.selected img {
-  width: 100%;
-  height: auto;
-  opacity: 0;
-  transform: scale(0.8); /* shrinks into place */
-}
-button.active {
-  background: yellow;
-}
+	.next {
+		background: #6abf5e;
+		border: 3px solid #3a8a30;
+		color: white;
+		font-size: 1.2rem;
+		font-weight: bold;
+		padding: 10px 28px;
+		border-radius: 999px;
+		cursor: pointer;
+		box-shadow: 0 4px 0 #2a6a20;
+		transition: transform 0.1s ease;
+	}
 
-.card img {
-  display: block;
-  width: 100px;
-  height: 137px; /* or whatever your base card height is */
-  object-fit: cover;
-  transform: scale(1); /* shrinks into place */
-  transition: opacity 0.15s ease, transform 0.25s ease;
-}
+	.next:hover {
+		transform: translateY(-2px);
+	}
 
-.card img.highlight {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  transform: scale(1.08); /* highlight is naturally bigger */
-  transition: opacity 0.15s ease, transform 0.25s ease;
-}
-
-.card.selected img.highlight {
-  opacity: 1;
-  transform: scale(1); /* shrinks into place */
-}
+	.next:active {
+		transform: translateY(2px);
+		box-shadow: 0 2px 0 #2a6a20;
+	}
 </style>
