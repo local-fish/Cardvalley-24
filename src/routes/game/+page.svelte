@@ -10,6 +10,7 @@
 	import { goto } from '$app/navigation';
   import { createClient } from '@supabase/supabase-js';
   import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+	import { resolve } from '$app/paths';
 
   const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
 
@@ -315,7 +316,7 @@
   {#if gameOver}
     <div class="correct" transition:fade={{ duration: 300 }}>
       <span>Thanks for playing!</span>
-      <button class="next" onclick={() => goto('/')}>End Game</button>
+      <button class="next" onclick={() => goto(resolve('/'))}>End Game</button>
     </div>
   {/if}
 

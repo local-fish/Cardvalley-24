@@ -1,5 +1,6 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { setUserData } from '$lib/userData';
 
   let step: number = $state(0); // 0 = menu, 1 = consent, 2 = user data, 3 = instructions, 4 = pre-level
@@ -12,7 +13,7 @@
   // add whatever other fields you need
 
   function next() {
-    if (step === 4) goto('/game');
+    if (step === 4) goto(resolve('/game'));
     if (step === 2){
       setUserData({name, age, gender, org});
       step++;
