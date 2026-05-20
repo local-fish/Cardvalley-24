@@ -73,11 +73,22 @@
             >Memilih Tidak Menjawab</button>
           </div>
         </div>
-        <label>
-          Asal Instansi
-          <input bind:value={org} type="text" placeholder="Instansi anda" />
-        </label>
-        <button class="next-btn" disabled={!name || !age || parseInt(age) < 1 || parseInt(age) > 120 || !gender || !org} onclick={next}>Next →</button>
+        <div class="field">
+          <span>Asal Instansi</span>
+          <div class="gender-options">
+            <button
+              class="gender-btn"
+              class:selected={org === 'Ubaya'}
+              onclick={() => org = 'Ubaya'}
+            >Ubaya</button>
+            <button
+              class="gender-btn"
+              class:selected={org === 'Non-Ubaya'}
+              onclick={() => org = 'Non-Ubaya'}
+            >Non-Ubaya</button>
+          </div>
+        </div>
+        <button class="next-btn" disabled={!name || !age || parseInt(age) < 17 || parseInt(age) > 120 || !gender || !org} onclick={next}>Next →</button>
       </div>
     </div>
 
