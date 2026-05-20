@@ -2,27 +2,28 @@
 	import { operators } from '$lib/operators';
 	import type { Operator } from '$lib/operators';
 
-	let { selectedOp, canSubmit, onSelect, onSubmit, blacklist } = $props<{
+	let { selectedOp, canSubmit, onSelect, onSubmit, onSkip, blacklist } = $props<{
 		selectedOp: Operator | null;
 		canSubmit: boolean;
 		onSelect: (op: Operator) => void;
 		onSubmit: () => void;
+    onSkip: () => void;
 		blacklist?: string;
 	}>();
-	const processed = $derived(blacklist?.length() < 1 ? blacklist : '');
 </script>
 
 <div class="operators">
 	{#each operators as op}
 		<button
 			class:active={selectedOp?.symbol === op.symbol && !blacklist?.includes(op.symbol)}
-			disabled={processed.includes(op.symbol)}
+			disabled={blacklist?.includes(op.symbol) ?? false}
 			onclick={() => onSelect(op)}
 		>
 			{op.symbol}
 		</button>
 	{/each}
 	<button class="submit" onclick={onSubmit} disabled={!canSubmit}> Submit </button>
+	<button class="skip" onclick={onSkip}> Skip </button>
 </div>
 
 <style>
@@ -54,7 +55,7 @@
 		line-height: 1;
 	}
 
-	.operators button:hover:not(.submit) {
+	.operators button:hover:not(.submit, .skip) {
 		background: #fad88a;
 		transform: translateY(-2px);
 	}
@@ -88,6 +89,20 @@
 
 	.operators .submit:hover:not(:disabled) {
 		background: #7acf6e;
+		transform: translateY(-2px);
+	}
+
+	.operators .skip {
+		background: #b43c28;
+		border-color: #91392a;
+		color: white;
+		box-shadow: 0 3px 0 #91392a;
+		width: auto;
+		padding: 0 16px;
+	}
+
+	.operators .skip:hover:not(:disabled) {
+		background: #d1503b;
 		transform: translateY(-2px);
 	}
 </style>

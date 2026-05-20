@@ -1,256 +1,277 @@
 <script lang="ts">
-	import { cards, type PlayingCard } from '$lib/cards';
-	import { questions, type Question } from '$lib/questions';
-	import { operators } from '$lib/operators';
-	import { fade } from 'svelte/transition';
-	import type { Operator } from '$lib/operators';
-	import Card from '$lib/components/Card.svelte';
-	import OperatorBar from '$lib/components/OperatorBar.svelte';
-	import type { LevelResult, Move } from '$lib/userData';
+  import { goto } from '$app/navigation';
+	import { setUserData } from '$lib/userData';
 
-	let selectedOp: Operator | null = $state(null);
-	let selectedCards: number[] = $state([]);
-	let currentLevel: number = $state(0);
-	const puzzle: Question = $derived(questions[currentLevel]);
-	let hand: PlayingCard[] = $derived(
-		puzzle.cards.map((cardIndex, i) => ({
-			...cards[cardIndex - 1],
-			handId: i,
-			displayValue: cards[cardIndex - 1].value,
-			isResult: false,
-			stackCount: 1,
-		})),
-	);
-	let results: LevelResult[] = $state([]);
-	// --- Timer ---
-	let elapsedMs: number = $state(0);
-	let timerInterval: ReturnType<typeof setInterval> | null = null;
+  let step: number = $state(0); // 0 = menu, 1 = consent, 2 = user data, 3 = instructions, 4 = pre-level
 
-	function startTimer() {
-		stopTimer();
-		elapsedMs = 0;
-		timerInterval = setInterval(() => {
-			elapsedMs += 1000;
-		}, 1000);
-	}
+  // user data form
+  let name: string = $state('');
+  let age: string = $state('');
+  let gender: string = $state('');
+  let org: string = $state('');
+  // add whatever other fields you need
 
-	function stopTimer() {
-		if (timerInterval !== null) {
-			clearInterval(timerInterval);
-			timerInterval = null;
-		}
-	}
-
-	function formatTime(ms: number): string {
-		return `${Math.floor(ms / 1000)}s`;
-	}
-
-	startTimer();
-
-	function selectCard(card: PlayingCard) {
-		if (selectedCards.includes(card.handId)) {
-			selectedCards = selectedCards.filter((id) => id !== card.handId);
-			return;
-		}
-		if (selectedCards.length >= 2) return;
-		selectedCards = [...selectedCards, card.handId];
-	}
-
-	function canSubmit() {
-		return selectedCards.length === 2 && selectedOp !== null;
-	}
-
-	let moveLog: Move[] = $state([]);
-
-	function merge() {
-		const op = operators.find((o) => o.symbol === selectedOp?.symbol);
-		const [a, b] = selectedCards.map((id) => hand.find((c) => c.handId === id));
-		const result = op?.fn(a?.displayValue ?? 0, b?.displayValue ?? 0);
-		const count = (a?.stackCount ?? 1) + (b?.stackCount ?? 1);
-		moveLog = [
-			...moveLog,
-			{
-				cardA: a?.displayValue ?? 0,
-				cardB: b?.displayValue ?? 0,
-				op: selectedOp?.symbol ?? '',
-				result: result ?? 0,
-			},
-		];
-
-		hand = hand
-			.filter((c) => c.handId !== b?.handId)
-			.map((c) =>
-				c.handId === a?.handId
-					? { ...c, displayValue: result, isResult: true, stackCount: count }
-					: c,
-			) as PlayingCard[];
-
-		selectedCards = [];
-		selectedOp = null;
-		if (hand.length === 1) {
-			stopTimer();
-			results = [
-				...results,
-				{
-					level: currentLevel + 1,
-					//moves: moveLog,
-					timeMs: elapsedMs,
-					correct: Math.abs((result ?? 0) - 24) < 0.0001,
-				},
-			];
-			console.log(JSON.stringify(results, null, 2));
-		}
-	}
-
-	const won = $derived(hand.length === 1 && Math.abs(hand[0].displayValue - 24) < 0.0001);
-	const lost = $derived(hand.length === 1 && Math.abs(hand[0].displayValue - 24) > 0.0001);
-
-	function nextLevel() {
-		if (currentLevel < questions.length - 1) {
-			currentLevel++;
-			resetLevel();
-		}
-	}
-
-	function resetLevel() {
-		hand = questions[currentLevel].cards.map((cardIndex, i) => ({
-			...cards[cardIndex - 1],
-			handId: i,
-			displayValue: cards[cardIndex - 1].value,
-			isResult: false,
-			stackCount: 1,
-		}));
-		selectedCards = [];
-		selectedOp = null;
-		//moveLog = [];
-		startTimer();
-	}
+  function next() {
+    if (step === 4) goto('/game');
+    if (step === 2){
+      setUserData({name, age, gender, org});
+      step++;
+    }
+    else step++;
+  }
 </script>
 
-<svelte:head>
-	{#each Object.values(cards) as card}
-		<link rel="preload" as="image" href={card.image} />
-		<link rel="preload" as="image" href={card.highlight} />
-	{/each}
-</svelte:head>
-
 <div class="page">
-	<div class="timer">{formatTime(elapsedMs)}</div>
-  <div> Make this into 24! </div>
+  {#if step === 0}
+    <button class="start" onclick={() => step++}>Start</button>
 
-	{#if won}
-		<div class="correct" transition:fade={{ duration: 300 }}>
-			<span>Correct!</span>
-			<button class="next" onclick={nextLevel}>Next →</button>
-		</div>
-	{/if}
-	{#if lost}
-		<div class="correct" transition:fade={{ duration: 300 }}>
-			<div class="wrong">Wrong Answer</div>
-			<button class="next" onclick={nextLevel}>Next →</button>
-		</div>
-	{/if}
+  {:else if step === 1}
+    <div class="backdrop">
+      <div class="panel">
+        <h2>Informed Consent</h2>
+        <p>
+          Data yang Anda berikan akan dijamin kerahasiaannya. Seluruh data yang terkumpul sepenuhnya milik Pengukuran Psikologis dan Fakultas Psikologi UBAYA yang hanya akan digunakan untuk kepentingan penelitian. Oleh karena itu, kami mengharapkan data Anda isi dengan sejujur-jujurnya.</p>
 
-	<div class="hand">
-		{#each hand as card (card.handId)}
-			<Card
-				{card}
-				selected={selectedCards.includes(card.handId)}
-				order={selectedCards.includes(card.handId) ? selectedCards.indexOf(card.handId) + 1 : null}
-				onclick={() => selectCard(card)}
-			/>
-		{/each}
-	</div>
+        <p>Apabila Anda tidak ingin meneruskan permainan ini lebih lanjut, pada titik kapanpun Anda diizinkan untuk meninggalkan permainan dengan mengetuk tombol "give up."</p>
+        <button class="next-btn" onclick={next}>Next →</button>
+      </div>
+    </div>
 
-	<OperatorBar
-		{selectedOp}
-		canSubmit={canSubmit()}
-		onSelect={(op) => (selectedOp = op)}
-		onSubmit={merge}
-		blacklist={puzzle.blacklist}
-	/>
+
+  {:else if step === 2}
+    <div class="backdrop">
+      <div class="panel">
+        <h2>Data Diri</h2>
+        <label>
+          Nama
+          <input bind:value={name} type="text" placeholder="Nama anda" />
+        </label>
+        <label>
+          Umur
+          <input bind:value={age} type="number" placeholder="Umur anda" />
+        </label>
+        <div class="field">
+        <span>
+          Jenis Kelamin
+        </span>
+          <div class="gender-options">
+            <button
+              class="gender-btn"
+              class:selected={gender === 'L'}
+              onclick={() => gender = 'L'}
+            >Laki - Laki</button>
+            <button
+              class="gender-btn"
+              class:selected={gender === 'P'}
+              onclick={() => gender = 'P'}
+            >Perempuan</button>
+            <button
+              class="gender-btn"
+              class:selected={gender === 'N'}
+              onclick={() => gender = 'N'}
+            >Memilih Tidak Menjawab</button>
+          </div>
+        </div>
+        <label>
+          Asal Instansi
+          <input bind:value={org} type="text" placeholder="Instansi anda" />
+        </label>
+        <button class="next-btn" disabled={!name || !age || !gender || !org} onclick={next}>Next →</button>
+      </div>
+    </div>
+
+  {:else if step === 3}
+    <div class="backdrop">
+      <div class="panel">
+        <h2>Cara Bermain</h2>
+        <p>Pada permainan ini, kamu akan diberikan beberapa kartu angka. Tugasmu adalah untuk menggabungkan semua kartu angka menggunakan operasi matematika yang diberikan untuk mencapai angka 24. 
+Kamu bebas menentukan urutan dan cara penyelesaiannya, asalkan hasilnya menghasilkan 24.</p>
+<p>Kamu memiliki 5 nyawa. Apabila kamu salah mengerjakan soal, kamu akan kehilangan 1 nyawa. Apabila kamu mau melewati satu nomor, kamu bisa menggunakan tombol "skip".</p>
+
+        <button class="next-btn" onclick={next}>Next →</button>
+      </div>
+    </div>
+
+  {:else if step === 4}
+    <div class="backdrop">
+      <div class="panel">
+        <h2>Level 1</h2>
+        <p>Kamu akan diberikan 4 kartu angka, dan 4 operasional</p>
+        <button class="next-btn" onclick={next}>Let's Go!</button>
+      </div>
+    </div>
+  {/if}
 </div>
 
+
 <style>
-	:global(html, body) {
-		margin: 0;
-		padding: 0;
-		overflow: hidden;
-	}
-	.hand {
-		display: flex;
-		gap: 1rem;
-	}
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  .panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    background: rgba(255, 245, 220, 0.92);
+    padding: 2rem 2.5rem;
+    border-radius: 20px;
+    max-width: 480px;
+    box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+    text-align: center;
+  }
 
-	.page {
-		height: 100vh;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		background-image: url('/background.png');
-		background-size: cover;
-		background-position: center;
-	}
+  .panel h2 {
+    margin: 0;
+    font-size: 1.6rem;
+    color: #7a3d00;
+  }
 
-	.timer {
-		position: fixed;
-		top: 1rem;
-		right: 1.5rem;
-		font-size: 1.4rem;
-		font-weight: bold;
-		color: white;
-		text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
-		font-variant-numeric: tabular-nums;
-		z-index: 10;
-	}
+  .panel p {
+    color: #5a3000;
+    line-height: 1.6;
+    margin: 0;
+  }
 
-	.correct {
-		position: fixed;
-		inset: 0;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 1rem;
-		background: rgba(0, 0, 0, 0.7);
-		pointer-events: all;
-		z-index: 2;
-	}
+  .panel label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    width: 100%;
+    color: #7a3d00;
+    font-weight: bold;
+    font-size: 0.9rem;
+  }
 
-	.correct span {
-		font-size: 3rem;
-		font-weight: bold;
-		color: white;
-		text-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
-	}
+  .panel input {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 2px solid #c8873a;
+    font-size: 1rem;
+    box-sizing: border-box;
+    outline: none;
+  }
 
-	.wrong {
-		font-size: 3rem;
-		font-weight: bold;
-		color: #a14b42;
-		text-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
-	}
+  .panel input:focus {
+    border-color: #e8622a;
+  }
 
-	.next {
-		background: #6abf5e;
-		border: 3px solid #3a8a30;
-		color: white;
-		font-size: 1.2rem;
-		font-weight: bold;
-		padding: 10px 28px;
-		border-radius: 999px;
-		cursor: pointer;
-		box-shadow: 0 4px 0 #2a6a20;
-		transition: transform 0.1s ease;
-	}
+  .next-btn {
+    background: #6abf5e;
+    border: 3px solid #3a8a30;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    padding: 10px 36px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #2a6a20;
+    transition: transform 0.1s ease;
+    margin-top: 0.5rem;
+  }
 
-	.next:hover {
-		transform: translateY(-2px);
-	}
+  .next-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
 
-	.next:active {
-		transform: translateY(2px);
-		box-shadow: 0 2px 0 #2a6a20;
-	}
+  .next-btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #2a6a20;
+  }
+
+  .next-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  :global(html, body) {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .page {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-image: url('/menu-background.png');
+    background-size: cover;
+    background-position: center;
+  }
+
+  .start {
+    position: absolute;
+    background: #6abf5e;
+    border: 3px solid #3a8a30;
+    color: white;
+    font-size: 1.4rem;
+    font-weight: bold;
+    padding: 12px 48px;
+    border-radius: 999px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #2a6a20;
+    transition: transform 0.1s ease;
+    bottom: 10rem;
+  }
+
+  .start:hover {
+    transform: translateY(-2px);
+  }
+
+  .start:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 #2a6a20;
+  }
+
+  .gender-options {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .gender-btn {
+    padding: 8px 0;
+    border-radius: 10px;
+    border: 2px solid #c8873a;
+    background: white;
+    color: #7a3d00;
+    font-weight: bold;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.1s ease, transform 0.1s ease;
+    flex: 0 0 auto;
+    padding: 8px 16px;
+  }
+
+  .gender-btn:hover {
+    background: #fad88a;
+    transform: translateY(-1px);
+  }
+
+  .gender-btn.selected {
+    background: #e8622a;
+    border-color: #a03a0a;
+    color: white;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    width: 100%;
+    color: #7a3d00;
+    font-weight: bold;
+    font-size: 0.9rem;
+  } 
 </style>

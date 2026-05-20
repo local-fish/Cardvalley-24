@@ -1,6 +1,8 @@
 export type Question = {
 	cards: number[];
 	blacklist?: string;
+  afterMessageHeading?: string;
+  afterMessage?: string;
 };
 export const questions: Question[] = [
 	{ cards: [5, 5, 1] },
@@ -17,7 +19,7 @@ export const questions: Question[] = [
 	{ cards: [6, 8, 9] },
 	{ cards: [1, 3, 9] },
 	{ cards: [2, 8, 8] },
-	{ cards: [4, 4, 8] },
+	{ cards: [4, 4, 8], afterMessageHeading: "Level 2", afterMessage: `Gunakan 4 kartu angka yang tersedia.\nPada level ini, operasi yang dapat digunakan hanya:\nPenjumlahan (+)\nPengurangan (−)\nPembagian (÷)\n` },
 	{ cards: [1, 3, 4, 6], blacklist: '×' },
 	{ cards: [1, 4, 5, 6], blacklist: '×' },
 	{ cards: [1, 2, 6, 7], blacklist: '×' },
@@ -32,7 +34,7 @@ export const questions: Question[] = [
 	{ cards: [5, 6, 7, 8], blacklist: '×' },
 	{ cards: [6, 7, 8, 9], blacklist: '×' },
 	{ cards: [2, 4, 5, 7], blacklist: '×' },
-	{ cards: [6, 7, 9, 9], blacklist: '×' },
+	{ cards: [6, 7, 9, 9], blacklist: '×', afterMessageHeading:"Level 3", afterMessage:`Pada level ini, kamu akan diberikan 4 kartu angka, diantaranya ada kartu desimal.\nOperasi yang dapat digunakan:\nPenjumlahan (+)\nPengurangan (−)\nPerkalian (×)\nPembagian (÷)`},
 	{ cards: [13, 4, 3, 2] },
 	{ cards: [10, 6, 4, 2] },
 	{ cards: [10, 9, 3, 1] },
