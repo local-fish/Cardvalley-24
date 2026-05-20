@@ -1,1 +1,0 @@
-import"./BsOWUT6z.js";var e=null;function t(t){e=t}function n(){return e}export{t as n,n as t};
