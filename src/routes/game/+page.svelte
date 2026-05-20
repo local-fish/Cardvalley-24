@@ -8,7 +8,7 @@
 	import OperatorBar from '$lib/components/OperatorBar.svelte';
 	import { getUserData, type LevelResult, type Move } from '$lib/userData';
 	import { goto } from '$app/navigation';
-	import { resolve } from '$app/paths';
+	import { asset, resolve } from '$app/paths';
 	import { getSupabase } from '$lib/supabase';
 
   const supabase = getSupabase();
@@ -255,7 +255,7 @@
   <div class="hearts">
     {#each Array(5) as _, i}
       <img
-        src="/heart.png"
+        src={asset('/heart.png')}
         alt="heart"
         class="heart"
         class:lost={i >= hearts}

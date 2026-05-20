@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { asset } from '$app/paths';
 	import type { PlayingCard } from '$lib/cards';
 
 	let { card, selected, order, onclick } = $props<{
@@ -13,8 +14,8 @@
 </script>
 
 <button class="card" class:selected {onclick}>
-	<img class="base" src={card.image} alt="Card" />
-	<img class="highlight" src={card.highlight} alt="Card" />
+	<img class="base" src={asset(card.image)} alt="Card" />
+	<img class="highlight" src={asset(card.highlight)} alt="Card" />
 
 	<div class="overlays" class:selected>
 		{#if order !== null}
