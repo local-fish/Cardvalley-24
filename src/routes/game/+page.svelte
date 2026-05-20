@@ -8,11 +8,10 @@
 	import OperatorBar from '$lib/components/OperatorBar.svelte';
 	import { getUserData, type LevelResult, type Move } from '$lib/userData';
 	import { goto } from '$app/navigation';
-  import { createClient } from '@supabase/supabase-js';
-  import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 	import { resolve } from '$app/paths';
+	import { getSupabase } from '$lib/supabase';
 
-  const supabase = createClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY);
+  const supabase = getSupabase();
 
 	let selectedOp: Operator | null = $state(null);
 	let selectedCards: number[] = $state([]);
