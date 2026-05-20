@@ -315,7 +315,7 @@
   {#if gameOver}
     <div class="correct" transition:fade={{ duration: 300 }}>
       <span>Thanks for playing!</span>
-      <button class="next" onclick={() => goto(resolve('/'))}>End Game</button>
+      <button class="next" onclick={() => goto(resolve('/thankyou'))}>End Game</button>
     </div>
   {/if}
 
