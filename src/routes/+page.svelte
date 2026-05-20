@@ -77,7 +77,7 @@
           Asal Instansi
           <input bind:value={org} type="text" placeholder="Instansi anda" />
         </label>
-        <button class="next-btn" disabled={!name || !age || !gender || !org} onclick={next}>Next →</button>
+        <button class="next-btn" disabled={!name || !age || parseInt(age) < 1 || parseInt(age) > 120 || !gender || !org} onclick={next}>Next →</button>
       </div>
     </div>
 
