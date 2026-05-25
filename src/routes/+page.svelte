@@ -108,7 +108,6 @@ Kamu bebas menentukan urutan dan cara penyelesaiannya, asalkan hasilnya menghasi
     <div class="backdrop">
       <div class="panel">
         <h2>Level 1</h2>
-        <p>Kamu akan diberikan 4 kartu angka, dan 4 operasional</p>
         <button class="next-btn" onclick={next}>Let's Go!</button>
       </div>
     </div>
