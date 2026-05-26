@@ -35,6 +35,7 @@
     if(step == 1) return;
     if(selectedCards.length == 0 && step == 0) updateStep(1);
     if(selectedCards.length == 1 && step == 2) updateStep(3);
+    if(selectedCards.length == 0 && step == 4) updateStep(5);
 		if (selectedCards.length >= 2) return;
 		selectedCards = [...selectedCards, card.handId];
 	}
@@ -151,7 +152,7 @@
   let stepText = $state("Klik kartu pertamamu");
   let step = $state(0);
   function updateStep(newStep: number){
-    if(step != 4) step = newStep;
+    if(step != 5) step = newStep;
     switch(step){
       case 0:
         stepText = "Klik kartu pertamamu";
@@ -167,6 +168,9 @@
         break;
       case 4:
         stepText = "Nomor abu abu pada kartu akan menunjukkan hasil penjumblahan tadi";
+        break;
+      case 5:
+        stepText = "Hati-hati, kartu yang sudah digabungkan tidak dapat dipisahkan kembali!";
         break;
     }
   }
