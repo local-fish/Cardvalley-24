@@ -293,7 +293,7 @@
   {/if}
   {#if skipPending && !gameOver}
     <div class="correct" transition:fade={{ duration: 300 }}>
-      <span>Apakah kamu yakin?</span>
+      <span>Apakah anda yakin?</span>
       <!--
       <span>Kamu akan kehilangan 1 nyawa</span>
       -->
