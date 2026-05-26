@@ -13,7 +13,7 @@
   // add whatever other fields you need
 
   function next() {
-    if (step === 4) goto(resolve('/game'));
+    if (step === 4) goto(resolve('/tutorial'));
     if (step === 2){
       setUserData({name, age, gender, org});
       step++;
@@ -107,7 +107,7 @@ Kamu bebas menentukan urutan dan cara penyelesaiannya, asalkan hasilnya menghasi
   {:else if step === 4}
     <div class="backdrop">
       <div class="panel">
-        <h2>Level 1</h2>
+        <h2>Tutorial</h2>
         <button class="next-btn" onclick={next}>Let's Go!</button>
       </div>
     </div>
