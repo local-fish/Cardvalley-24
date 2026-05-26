@@ -223,11 +223,9 @@
   {#if skipPending && !gameOver}
     <div class="correct" transition:fade={{ duration: 300 }}>
       <span>Apakah anda yakin?</span>
-      <!--
       <span>Kamu akan kehilangan 1 nyawa</span>
-      -->
       <div>
-        <button class="confirm-yes" onclick={skip}>Iya</button>
+        <button disabled class="confirm-yes" style="opacity: 0.6" onclick={skip}>Iya</button>
         <button class="next" onclick={stopSkip}>Tidak</button>
       </div>
     </div>
@@ -279,7 +277,7 @@
     <button class="give-up-no" onclick={() => giveUpPending = false}>No</button>
     </div>
   {:else}
-    <button class="give-up" onclick={() => giveUpPending = true}>Give Up</button>
+    <button disabled style="opacity: 0.6" class="give-up" onclick={() => giveUpPending = true}>Give Up</button>
   {/if}
 </div>
 
@@ -407,16 +405,6 @@
     cursor: pointer;
     transition: transform 0.1s ease, background 0.1s ease;
     box-shadow: 0 3px 0 #64140a4d;
-  }
-  .give-up:hover {
-    background: #b43c2873;
-    border-color: #c8503ccc;
-    color: #ffffff;
-    transform: translateY(-2px);
-  }
-  .give-up:active {
-    transform: translateY(2px);
-    box-shadow: 0 1px 0 #64140a4d;
   }
   .give-up-confirm {
     display: flex;
