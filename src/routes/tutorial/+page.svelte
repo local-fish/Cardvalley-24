@@ -167,7 +167,7 @@
         stepText = "Klik submit";
         break;
       case 4:
-        stepText = "Nomor abu abu pada kartu akan menunjukkan hasil penjumblahan tadi";
+        stepText = "Nomor abu abu pada kartu akan menunjukkan hasil penjumlahan tadi";
         break;
       case 5:
         stepText = "Hati-hati, kartu yang sudah digabungkan tidak dapat dipisahkan kembali!";
