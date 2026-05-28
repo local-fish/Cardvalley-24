@@ -234,8 +234,9 @@
           correct: correctCount,
         }
       });
+    localStorage.removeItem('userData');
 
-  if (error) console.error(error);
+    if (error) console.error(error);
   }
 
   async function endGame() {

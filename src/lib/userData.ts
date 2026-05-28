@@ -22,8 +22,11 @@ let _userData: UserData | null = null;
 
 export function setUserData(data: UserData) {
   _userData = data;
+  localStorage.setItem('userData', JSON.stringify(data));
 }
 
 export function getUserData(): UserData | null {
-  return _userData;
+  if (_userData) return _userData;
+  const stored = localStorage.getItem('userData');
+  return stored ? JSON.parse(stored) : null;
 }
