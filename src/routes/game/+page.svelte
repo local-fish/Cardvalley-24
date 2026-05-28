@@ -227,7 +227,11 @@
     selectedOp = null;
   }
 
+  let submitted = false;
+
   async function submitResults() {
+    if(submitted) return;
+    submitted = true;
     console.log(results);
     const { error } = await supabase
       .from('results')
