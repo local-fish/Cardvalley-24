@@ -10,7 +10,14 @@
 	import { goto } from '$app/navigation';
 	import { asset, resolve } from '$app/paths';
 	import { getSupabase } from '$lib/supabase';
+  import { onMount } from 'svelte';
 
+  onMount(() => {
+    if (!getUserData()) {
+      alert('Unable to find user data, please retry');
+      goto(resolve('/'));
+    }
+  });
   const supabase = getSupabase();
 
 	let selectedOp: Operator | null = $state(null);
