@@ -270,7 +270,7 @@
   {#if won && !gameOver}
     <div class="correct" transition:fade={{ duration: 300 }}>
       <span>Bagus Sekali!</span>
-      {#if puzzle.afterMessage}
+      {#if puzzle.afterMessage || puzzle.afterMessageHeading}
         <div class="panel">
           <p class="after-message">{puzzle.afterMessageHeading}</p>
           <p>{puzzle.afterMessage}</p>
@@ -282,7 +282,7 @@
   {#if lost && !gameOver}
     <div class="correct" transition:fade={{ duration: 300 }}>
       <div class="wrong">Coba Lagi!</div>
-      {#if puzzle.afterMessage}
+      {#if puzzle.afterMessage || puzzle.afterMessageHeading}
         <div class="panel">
           <p class="after-message">{puzzle.afterMessageHeading}</p>
           <p>{puzzle.afterMessage}</p>
@@ -307,7 +307,7 @@
   {#if givenUp}
     <div class="correct" transition:fade={{ duration: 300 }}>
       <span>Jangan Menyerah!</span>
-      {#if puzzle.afterMessage}
+      {#if puzzle.afterMessage || puzzle.afterMessageHeading}
         <div class="panel">
           <p class="after-message">{puzzle.afterMessageHeading}</p>
           <p>{puzzle.afterMessage}</p>
