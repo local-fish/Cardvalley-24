@@ -1,0 +1,1 @@
+var e=null;function t(t){e=t,localStorage.setItem(`userData`,JSON.stringify(t))}function n(){if(e)return e;let t=localStorage.getItem(`userData`);return t?JSON.parse(t):null}export{t as n,n as t};
