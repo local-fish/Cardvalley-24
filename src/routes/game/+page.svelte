@@ -277,6 +277,9 @@
   </div>
   -->
 	<div class="timer">{formatTime(elapsedMs)}</div>
+  <div class="progress-bar">
+    <div class="progress-fill" style="width: {(currentLevel / questions.length) * 100}%"></div>
+  </div>
   <div class="heading"> Nomor Target: 24 </div>
 
   {#if won && !gameOver}
@@ -409,7 +412,7 @@
 
 	.timer {
 		position: fixed;
-		top: 1rem;
+		top: 32px;
 		right: 1.5rem;
 		font-size: 1.4rem;
 		font-weight: bold;
@@ -601,4 +604,20 @@
 		background: #d1503b;
 		transform: translateY(-2px);
 	}
+
+  .progress-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 20px;
+    background: rgba(255,255,255,0.3);
+    z-index: 10;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: #6abf5e;
+    transition: width 0.3s ease;
+  }
 </style>
