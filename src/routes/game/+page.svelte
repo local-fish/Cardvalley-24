@@ -23,7 +23,7 @@
 	let selectedOp: Operator | null = $state(null);
 	let selectedCards: number[] = $state([]);
 	let currentLevel: number = $state(0);
-  let hearts: number = $state(999);
+  let hearts: number = $state(5);
 	const puzzle: Question = $derived(questions[currentLevel]);
 	let hand: PlayingCard[] = $derived(
 		puzzle.cards.map((cardIndex, i) => ({
@@ -153,7 +153,7 @@
   let incorrect: number = $state(0);
 
 	function nextLevel() {
-    if (won) hearts = 999;
+    if (won) hearts = 5;
 		if (currentLevel < questions.length - 1) {
 			currentLevel++;
 			resetLevel();
@@ -264,7 +264,6 @@
 </svelte:head>
 
 <div class="page">
-  <!--
   <div class="hearts">
     {#each Array(5) as _, i}
       <img
@@ -275,7 +274,6 @@
       />
     {/each}
   </div>
-  -->
 	<div class="timer">{formatTime(elapsedMs)}</div>
   <div class="progress-bar">
     <div class="progress-fill" style="width: {(currentLevel / questions.length) * 100}%"></div>
@@ -309,9 +307,7 @@
   {#if skipPending && !gameOver}
     <div class="correct" transition:fade={{ duration: 300 }}>
       <span>Apakah anda yakin?</span>
-      <!--
       <span>Kamu akan kehilangan 1 nyawa</span>
-      -->
       <div>
         <button class="confirm-yes" onclick={skip}>Iya</button>
         <button class="next" onclick={stopSkip}>Tidak</button>
@@ -473,7 +469,6 @@
 		box-shadow: 0 2px 0 #2a6a20;
 	}
 
-  /*
   .hearts {
     display: flex;
     gap: 0.4rem;
@@ -491,7 +486,6 @@
     opacity: 0.25;
     filter: grayscale(1);
   }
-  */
 
   .give-up {
     margin-top: 0.5rem;
